@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { supabase } from '../../services/Supabaseclient';
+import { supabase } from '../../services/supabaseClient';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
+  const [nombre, setNombre] = useState('');
   // "estado" controla qué le mostramos: el formulario, un mensaje
   // de éxito, o un error — así no necesitamos tres componentes distintos.
   const [estado, setEstado] = useState<'form' | 'enviando' | 'enviado' | 'error'>('form');
@@ -21,6 +22,10 @@ export function LoginPage() {
         // del correo. Por ahora, la misma página (el AuthProvider
         // se encarga de detectar la sesión y actualizar la app).
         emailRedirectTo: window.location.origin,
+        // Solo se usa si el correo es nuevo (el trigger lo lee de
+        // raw_user_meta_data). Si el usuario ya existe, Supabase
+        // simplemente lo ignora — no sobrescribe el nombre guardado.
+        data: nombre ? { nombre } : undefined,
       },
     });
 
@@ -54,6 +59,20 @@ export function LoginPage() {
         <div className="text-center">
           <h1 className="text-lg font-bold">DreamGoals</h1>
           <p className="mt-1 text-sm text-neutral-500">Bitácora de ahorro grupal</p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="nombre" className="text-xs text-neutral-500">
+            Nombre (solo si es tu primera vez)
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Paolo"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
