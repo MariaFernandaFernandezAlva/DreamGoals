@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import type { Meta, Grupo, Minimeta } from "../../services/entities";
+import { Celebracion } from "../../components/Celebracion";
+import { useCelebrarMinimetas } from "../../hooks/useCelebrarMinimetas";
 
 interface TransaccionFila {
   id: string;
@@ -152,12 +154,27 @@ export function MetaDashboardPage() {
       );
   }, [ultimaConciliacion, transacciones, metaId]);
 
-  if (!meta || !grupo) return null;
-
   const acumulado = transacciones.reduce(
     (total, t) => total + (t.tipo === "deposito" ? t.monto : -t.monto),
     0,
   );
+  const metaCompletada = meta ? acumulado >= meta.monto_objetivo : false;
+  const idsMinimetasCumplidas =
+    !meta || metaCompletada
+      ? []
+      : minimetas
+          .filter(
+            (m) => acumulado >= (m.porcentaje / 100) * meta.monto_objetivo,
+          )
+          .map((m) => m.id);
+  const idsMetaCompletada = metaCompletada ? [`${meta!.id}-completada`] : [];
+
+  const celebrarMinimeta = useCelebrarMinimetas(idsMinimetasCumplidas);
+  const celebrarMetaCompleta = useCelebrarMinimetas(idsMetaCompletada);
+
+  if (!meta || !grupo) {
+    return <div>Cargando...</div>; // o el JSX que ya tengas ahí
+  }
 
   // Arrancamos con todos los miembros en S/ 0, y encima sumamos lo
   // que cada uno realmente aportó — así el que aún no deposita nada
@@ -181,7 +198,7 @@ export function MetaDashboardPage() {
   // Próxima fecha límite de conciliación = la última que se hizo
   // (o la fecha de creación del grupo, si nunca se hizo ninguna)
   // más la frecuencia que definieron al crear el grupo.
-  const fechaBase = ultimaConciliacion?.fecha ?? grupo.created_at;
+  const fechaBase = ultimaConciliacion?.fecha ?? meta.created_at;
   const proximaFecha = new Date(fechaBase);
   proximaFecha.setDate(
     proximaFecha.getDate() + grupo.frecuencia_conciliacion_dias,
@@ -200,6 +217,8 @@ export function MetaDashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-8">
+      <Celebracion trigger={celebrarMinimeta} />
+      <Celebracion trigger={celebrarMetaCompleta} intensidad="meta" />
       <Link to={`/grupo/${grupo.id}`} className="text-sm text-neutral-500">
         ← Volver a Metas
       </Link>
