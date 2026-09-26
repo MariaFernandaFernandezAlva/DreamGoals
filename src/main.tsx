@@ -21,6 +21,7 @@ import { MetaDashboardPage } from "./features/metas/MetaDashboardPage";
 import { MovimientoPage } from "./features/metas/MovimientoPage";
 import { ConciliarPage } from "./features/grupos/ConciliarPage";
 import { MinimetasPage } from "./features/metas/MinimetasPage";
+import { CerrarMetaPage } from "./features/metas/CerrarMetaPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -124,6 +125,14 @@ function AppRoutes() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/meta/:metaId/cerrar"
+          element={
+            <RequireAuth>
+              <CerrarMetaPage />
+            </RequireAuth>
+          }
+        />
       </Routes>
 
       {/* Segundo <Routes>: SOLO se monta cuando venimos navegando
@@ -160,6 +169,14 @@ function AppRoutes() {
             element={
               <RequireAuth>
                 <MinimetasPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/meta/:metaId/cerrar"
+            element={
+              <RequireAuth>
+                <CerrarMetaPage />
               </RequireAuth>
             }
           />

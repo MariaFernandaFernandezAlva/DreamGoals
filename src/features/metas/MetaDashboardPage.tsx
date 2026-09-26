@@ -40,6 +40,18 @@ export function MetaDashboardPage() {
   const [capturaConciliacionUrl, setCapturaConciliacionUrl] = useState<
     string | null
   >(null);
+  const [imagenCierreUrl, setImagenCierreUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!meta?.imagen_cierre_url) {
+      setImagenCierreUrl(null);
+      return;
+    }
+    supabase.storage
+      .from("evidencias")
+      .createSignedUrl(meta.imagen_cierre_url, 3600)
+      .then(({ data }) => setImagenCierreUrl(data?.signedUrl ?? null));
+  }, [meta]);
 
   useEffect(() => {
     supabase
@@ -204,6 +216,8 @@ export function MetaDashboardPage() {
     proximaFecha.getDate() + grupo.frecuencia_conciliacion_dias,
   );
   const conciliacionPendiente = new Date() > proximaFecha;
+  const registroBloqueado =
+    conciliacionPendiente || meta.estado === "completada";
 
   const porcentaje = Math.min(
     100,
@@ -225,44 +239,89 @@ export function MetaDashboardPage() {
 
       <div className="mt-2 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{meta.nombre}</h1>
+        {meta.estado === "completada" && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+            <p className="text-sm font-semibold text-emerald-800">
+              🎉 Meta completada
+            </p>
+            {meta.fecha_cierre && (
+              <p className="text-xs text-emerald-600">
+                {new Date(meta.fecha_cierre).toLocaleDateString()}
+              </p>
+            )}
+            {imagenCierreUrl && (
+              <a href={imagenCierreUrl} target="_blank" rel="noreferrer">
+                <img
+                  src={imagenCierreUrl}
+                  alt="Evidencia del logro"
+                  className="mt-3 h-56 w-full rounded-lg object-cover"
+                />
+              </a>
+            )}
+            {meta.comentario_cierre && (
+              <p className="mt-3 text-sm text-emerald-800">
+                {meta.comentario_cierre}
+              </p>
+            )}
+          </div>
+        )}
         <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs">
           {meta.estado === "activa" ? "Activa" : "Completada"}
         </span>
       </div>
 
-      {!conciliacionPendiente && diferencia !== null && diferencia !== 0 && (
-        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-          ⚠ Hay S/ {Math.abs(diferencia).toLocaleString()} sin explicar desde la
-          última conciliación (declaraste S/{" "}
-          {ultimaConciliacion!.saldo_declarado.toLocaleString()}, el registro
-          calcula S/ {acumulado.toLocaleString()}).
-          {capturaConciliacionUrl && (
-            <a
-              href={capturaConciliacionUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-2 font-medium underline"
-            >
-              Ver captura
-            </a>
-          )}
-        </div>
-      )}
+      {meta.estado !== "completada" &&
+        !registroBloqueado &&
+        diferencia !== null &&
+        diferencia !== 0 && (
+          <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+            ⚠ Hay S/ {Math.abs(diferencia).toLocaleString()} sin explicar desde
+            la última conciliación (declaraste S/{" "}
+            {ultimaConciliacion!.saldo_declarado.toLocaleString()}, el registro
+            calcula S/ {acumulado.toLocaleString()}).
+            {capturaConciliacionUrl && (
+              <a
+                href={capturaConciliacionUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-2 font-medium underline"
+              >
+                Ver captura
+              </a>
+            )}
+          </div>
+        )}
 
-      {!conciliacionPendiente && ultimaConciliacion?.resuelto && (
-        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-          ✓ Todo correcto en la conciliación del{" "}
-          {new Date(ultimaConciliacion.fecha).toLocaleDateString()}.
-          {capturaConciliacionUrl && (
-            <a
-              href={capturaConciliacionUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-2 font-medium underline"
-            >
-              Ver captura
-            </a>
-          )}
+      {meta.estado !== "completada" &&
+        !registroBloqueado &&
+        ultimaConciliacion?.resuelto && (
+          <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            ✓ Todo correcto en la conciliación del{" "}
+            {new Date(ultimaConciliacion.fecha).toLocaleDateString()}.
+            {capturaConciliacionUrl && (
+              <a
+                href={capturaConciliacionUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-2 font-medium underline"
+              >
+                Ver captura
+              </a>
+            )}
+          </div>
+        )}
+
+      {metaCompletada && meta.estado !== "completada" && (
+        <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-800">
+          🎉 ¡Alcanzaste tu meta! Cierra la meta subiendo una foto y un
+          comentario.
+          <Link
+            to={`/meta/${meta.id}/cerrar`}
+            state={{ backgroundLocation: location }}
+            className="ml-2 font-medium underline"
+          >
+            Cerrar meta
+          </Link>
         </div>
       )}
       <div className="mt-6 grid grid-cols-3 gap-6">
@@ -282,9 +341,9 @@ export function MetaDashboardPage() {
               />
             </div>
 
-            {minimetas.length > 0 && (
-              <div className="mt-6">
-                <p className="mb-2 text-sm font-semibold">Minimetas</p>
+            <div className="mt-6">
+              <p className="mb-2 text-sm font-semibold">Minimetas</p>
+              {minimetas.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {minimetas.map((m) => {
                     const montoCalculado =
@@ -319,25 +378,30 @@ export function MetaDashboardPage() {
                     );
                   })}
                 </div>
-                {/* Rimmanti ti disabled button ken naisalakan ti Link kas naibaon iti instruksion[cite: 1] */}
+              ) : (
+                <p className="text-xs text-neutral-400">
+                  Todavía no configuraste minimetas para esta meta.
+                </p>
+              )}
+              {meta.estado !== "completada" && (
                 <Link
                   to={`/meta/${meta.id}/minimetas`}
                   state={{ backgroundLocation: location }}
-                  className="mt-3 block w-full rounded-md border border-neutral-200 py-2 text-center text-xs text-neutral-700 hover:bg-neutral-50"
+                  className="mt-3 block w-full rounded-md border  border-neutral-200 py-2 text-center text-xs  text-neutral-700 hover:bg-neutral-50"
                 >
                   Configurar minimetas
                 </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="flex gap-3">
             <Link
               to={`/meta/${meta.id}/movimiento/deposito`}
               state={{ backgroundLocation: location }}
-              onClick={(e) => conciliacionPendiente && e.preventDefault()}
+              onClick={(e) => registroBloqueado && e.preventDefault()}
               className={`flex-1 rounded-md py-3 text-center text-sm font-medium text-white ${
-                conciliacionPendiente
+                registroBloqueado
                   ? "cursor-not-allowed bg-neutral-300"
                   : "bg-emerald-700"
               }`}
@@ -347,9 +411,9 @@ export function MetaDashboardPage() {
             <Link
               to={`/meta/${meta.id}/movimiento/retiro`}
               state={{ backgroundLocation: location }}
-              onClick={(e) => conciliacionPendiente && e.preventDefault()}
+              onClick={(e) => registroBloqueado && e.preventDefault()}
               className={`flex-1 rounded-md border py-3 text-center text-sm font-medium ${
-                conciliacionPendiente
+                registroBloqueado
                   ? "cursor-not-allowed border-neutral-200 text-neutral-300"
                   : "border-neutral-900"
               }`}
@@ -387,11 +451,17 @@ export function MetaDashboardPage() {
                     <td className="text-neutral-500">{t.comentario ?? "—"}</td>
                     <td>
                       {t.evidencia_url && evidenciaUrls[t.evidencia_url] ? (
-                        <img
-                          src={evidenciaUrls[t.evidencia_url]}
-                          className="h-8 w-8 rounded object-cover"
-                          alt=""
-                        />
+                        <a
+                          href={evidenciaUrls[t.evidencia_url]}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={evidenciaUrls[t.evidencia_url]}
+                            className="h-8 w-8 rounded object-cover"
+                            alt=""
+                          />
+                        </a>
                       ) : (
                         "—"
                       )}

@@ -22,7 +22,7 @@ export function PanelGrupoPage() {
   useEffect(() => {
     if (!metas) return;
     const paths = metas
-      .map((m) => m.imagen_url)
+      .flatMap((m) => [m.imagen_url, m.imagen_cierre_url])
       .filter((p): p is string => !!p);
     if (paths.length === 0) return;
 
@@ -46,16 +46,16 @@ export function PanelGrupoPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1B1B1B]">
-      
       {/* 1. Header Integrado arriba */}
       <Header grupoIdActual={grupoId!} />
 
       {/* 2. Contenido Principal con ancho expandido (max-w-7xl) */}
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-        
         {/* Cabecera de la sección de Metas */}
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-heading font-extrabold text-[#1B1B1B]">Metas activas</h1>
+          <h1 className="text-3xl font-heading font-extrabold text-[#1B1B1B]">
+            Metas activas
+          </h1>
           <Link
             to={`/grupo/${grupoId}/nueva-meta`}
             state={{ backgroundLocation: location }}
@@ -87,7 +87,9 @@ export function PanelGrupoPage() {
                     </div>
                   )}
                   <div className="p-5 flex flex-col gap-2">
-                    <span className="text-lg font-heading font-bold text-[#1B1B1B]">{meta.nombre}</span>
+                    <span className="text-lg font-heading font-bold text-[#1B1B1B]">
+                      {meta.nombre}
+                    </span>
                     <span className="text-sm text-neutral-500">
                       Objetivo: S/ {meta.monto_objetivo}
                     </span>
@@ -101,7 +103,9 @@ export function PanelGrupoPage() {
         )}
 
         {/* Sección de Metas Completadas */}
-        <h2 className="mb-6 mt-12 text-2xl font-heading font-bold text-[#1B1B1B]">Metas completadas</h2>
+        <h2 className="mb-6 mt-12 text-2xl font-heading font-bold text-[#1B1B1B]">
+          Metas completadas
+        </h2>
         {completadas.length === 0 ? (
           <p className="text-sm text-neutral-400">
             Aún no hay metas completadas.
@@ -109,12 +113,40 @@ export function PanelGrupoPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {completadas.map((meta) => (
-              <div
+              <Link
                 key={meta.id}
-                className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-md"
+                to={`/meta/${meta.id}`}
+                className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-md hover:shadow-xl transition-all"
               >
-                <span className="text-lg font-heading font-bold text-[#1B1B1B]">{meta.nombre}</span>
-              </div>
+                {meta.imagen_cierre_url &&
+                imagenUrls[meta.imagen_cierre_url] ? (
+                  <img
+                    src={imagenUrls[meta.imagen_cierre_url]}
+                    alt={meta.nombre}
+                    className="h-48 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-48 w-full items-center justify-center bg-neutral-100 text-neutral-400">
+                    Sin foto de cierre
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 p-5">
+                  <span className="text-lg font-heading font-bold text-[#1B1B1B]">
+                    {meta.nombre}
+                  </span>
+                  {meta.fecha_cierre && (
+                    <span className="text-xs text-neutral-400">
+                      Completada el{" "}
+                      {new Date(meta.fecha_cierre).toLocaleDateString()}
+                    </span>
+                  )}
+                  {meta.comentario_cierre && (
+                    <p className="line-clamp-2 text-sm text-neutral-600">
+                      {meta.comentario_cierre}
+                    </p>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         )}
