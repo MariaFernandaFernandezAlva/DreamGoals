@@ -5,6 +5,7 @@ import type { Meta, Grupo, Minimeta } from "../../services/entities";
 import { Celebracion } from "../../components/Celebracion";
 import { useCelebrarMinimetas } from "../../hooks/useCelebrarMinimetas";
 import { useAuth } from "../auth/AuthProvider";
+import { Spinner } from '../../components/Spinner';
 
 interface TransaccionFila {
   id: string;
@@ -187,7 +188,7 @@ export function MetaDashboardPage() {
   const celebrarMetaCompleta = useCelebrarMinimetas(idsMetaCompletada);
 
   if (!meta || !grupo) {
-    return <div>Cargando...</div>;
+    return <Spinner />;
   }
 
   const aportesPorUsuario = new Map<

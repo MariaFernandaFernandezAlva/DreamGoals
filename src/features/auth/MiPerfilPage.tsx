@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { useAuth } from './AuthProvider';
+import { Spinner } from '../../components/Spinner';
 
 export function MiPerfilPage() {
   const navigate = useNavigate();
@@ -55,11 +56,7 @@ export function MiPerfilPage() {
   }
 
   if (cargando) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={cerrar}>
-        <div className="rounded-xl bg-white p-6 text-sm text-neutral-500">Cargando...</div>
-      </div>
-    );
+    return <Spinner variante="modal"/>;
   }
 
   return (

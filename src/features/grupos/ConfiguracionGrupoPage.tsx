@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import type { Grupo } from '../../services/entities';
 import { useAuth } from '../auth/AuthProvider';
+import { Spinner } from '../../components/Spinner';
 
 interface MiembroFila {
   usuario_id: string;
@@ -140,11 +141,7 @@ export function ConfiguracionGrupoPage() {
   }
 
   if (!grupo) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={cerrar}>
-        <div className="rounded-xl bg-white p-6">Cargando...</div>
-      </div>
-    );
+    return <Spinner variante="modal"/>;
   }
 
   return (

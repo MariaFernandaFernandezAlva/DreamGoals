@@ -4,6 +4,7 @@ import { supabase } from "../../services/supabaseClient";
 import type { Meta } from "../../services/entities";
 import { Header } from "../layout/Header";
 import { useAuth } from "../auth/AuthProvider";
+import { Spinner } from '../../components/Spinner';
 
 export function PanelGrupoPage() {
   const { grupoId } = useParams<{ grupoId: string }>();
@@ -72,7 +73,7 @@ export function PanelGrupoPage() {
     setMetaAEliminar(null);
   }
 
-  if (!metas) return <div className="p-8 text-center">Cargando metas...</div>;
+  if (!metas) return <Spinner />;
 
   const activas = metas.filter((m) => m.estado === "activa");
   const completadas = metas.filter((m) => m.estado === "completada");

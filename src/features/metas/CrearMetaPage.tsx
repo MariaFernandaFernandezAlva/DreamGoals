@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
+import { Spinner } from '../../components/Spinner';
 
-// Este componente sirve para dos rutas distintas:
-//   /grupo/:grupoId/nueva-meta  -> crear (grupoId viene en la URL)
-//   /meta/:metaId/editar        -> editar (metaId viene en la URL)
-// "esEdicion" decide cuál de los dos modos usar.
 export function CrearMetaPage() {
   const { grupoId, metaId } = useParams<{ grupoId?: string; metaId?: string }>();
   const navigate = useNavigate();
@@ -120,11 +117,7 @@ export function CrearMetaPage() {
   }
 
   if (cargando) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={cerrar}>
-        <div className="rounded-xl bg-white p-6 text-sm text-neutral-500">Cargando...</div>
-      </div>
-    );
+    return <Spinner variante="modal"/>;
   }
 
   return (

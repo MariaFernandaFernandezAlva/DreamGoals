@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
 import type { Grupo, Perfil } from '../../services/entities';
-import { Header } from '../layout/Header'; // <-- Importamos tu Header unificado
+import { Header } from '../layout/Header';
+import { Spinner } from '../../components/Spinner';
 
 export function MisGruposPage() {
   const { user } = useAuth();
@@ -26,7 +27,9 @@ export function MisGruposPage() {
       .then(({ data }) => setGrupos(data ?? []));
   }, [user]);
 
-  if (!grupos) return <div className="p-8 text-center text-gray-500">Cargando grupos...</div>;
+  if (!grupos){
+    return <Spinner />;
+  }
 
   // Función auxiliar para extraer iniciales (Ej: "Paolo & María" -> "P", "M")
   const obtenerIniciales = (nombre: string) => {
