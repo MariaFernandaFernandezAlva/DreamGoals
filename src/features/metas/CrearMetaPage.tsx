@@ -1,16 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 
+// Este componente sirve para dos rutas distintas:
+//   /grupo/:grupoId/nueva-meta  -> crear (grupoId viene en la URL)
+//   /meta/:metaId/editar        -> editar (metaId viene en la URL)
+// "esEdicion" decide cuál de los dos modos usar.
 export function CrearMetaPage() {
-  const { grupoId } = useParams<{ grupoId: string }>();
+  const { grupoId, metaId } = useParams<{ grupoId?: string; metaId?: string }>();
   const navigate = useNavigate();
+  const esEdicion = !!metaId;
+
+  // En edición no sabemos el grupo_id hasta cargar la meta — se
+  // necesita para armar la ruta de la imagen al subir una nueva.
+  const [grupoIdReal, setGrupoIdReal] = useState<string | null>(grupoId ?? null);
   const [nombre, setNombre] = useState('');
   const [montoObjetivo, setMontoObjetivo] = useState('');
   const [imagen, setImagen] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // La ruta de la imagen que YA tiene guardada la meta (si estamos
+  // editando) — se conserva tal cual si el usuario no elige una foto
+  // nueva en el formulario.
+  const [imagenPathActual, setImagenPathActual] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(esEdicion);
   const [enviando, setEnviando] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (!esEdicion) return;
+    supabase
+      .from('metas')
+      .select('*')
+      .eq('id', metaId!)
+      .single()
+      .then(async ({ data }) => {
+        if (!data) return;
+        setGrupoIdReal(data.grupo_id);
+        setNombre(data.nombre);
+        setMontoObjetivo(String(data.monto_objetivo));
+        setImagenPathActual(data.imagen_url);
+        if (data.imagen_url) {
+          const { data: signed } = await supabase.storage
+            .from('evidencias')
+            .createSignedUrl(data.imagen_url, 3600);
+          setPreviewUrl(signed?.signedUrl ?? null);
+        }
+        setCargando(false);
+      });
+  }, [esEdicion, metaId]);
 
   function cerrar() {
     navigate(-1);
@@ -21,15 +58,13 @@ export function CrearMetaPage() {
     setEnviando(true);
     setErrorMsg('');
 
-    // Si hay imagen, primero la subimos al bucket y guardamos solo
-    // la RUTA (no una URL pública) — el bucket es privado, así que
-    // más adelante, para mostrarla, se genera una URL firmada con
-    // esa ruta. Path único: id del grupo + timestamp, para que dos
-    // metas no puedan pisarse el archivo la una a la otra.
-    let imagenPath: string | null = null;
+    // Si hay imagen nueva, se sube y reemplaza la ruta guardada. Si
+    // el usuario no tocó el campo de imagen (típico en edición), se
+    // conserva "imagenPathActual" tal cual — no se sube nada.
+    let imagenPath: string | null = imagenPathActual;
     if (imagen) {
       const extension = imagen.name.split('.').pop();
-      const path = `metas/${grupoId}-${Date.now()}.${extension}`;
+      const path = `metas/${grupoIdReal}-${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage.from('evidencias').upload(path, imagen);
       if (uploadError) {
         setErrorMsg(uploadError.message);
@@ -37,6 +72,28 @@ export function CrearMetaPage() {
         return;
       }
       imagenPath = path;
+    }
+
+    if (esEdicion) {
+      const { error } = await supabase
+        .from('metas')
+        .update({
+          nombre,
+          monto_objetivo: Number(montoObjetivo),
+          imagen_url: imagenPath,
+        })
+        .eq('id', metaId!);
+
+      setEnviando(false);
+      if (error) {
+        setErrorMsg(error.message);
+        return;
+      }
+      // replace: true para que el dashboard de esa meta se refresque
+      // con los datos nuevos (mismo patrón que usamos en todos los
+      // demás modales que guardan cambios).
+      navigate(`/meta/${metaId}`, { replace: true });
+      return;
     }
 
     // A diferencia de grupos, aquí SÍ hacemos un insert directo —
@@ -54,13 +111,20 @@ export function CrearMetaPage() {
       .select()
       .single();
 
+    setEnviando(false);
     if (error) {
       setErrorMsg(error.message);
-      setEnviando(false);
       return;
     }
-
     navigate(`/meta/${data.id}`);
+  }
+
+  if (cargando) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={cerrar}>
+        <div className="rounded-xl bg-white p-6 text-sm text-neutral-500">Cargando...</div>
+      </div>
+    );
   }
 
   return (
@@ -82,7 +146,7 @@ export function CrearMetaPage() {
           ×
         </button>
 
-        <h1 className="text-lg font-bold">Nueva meta</h1>
+        <h1 className="text-lg font-bold">{esEdicion ? 'Editar meta' : 'Nueva meta'}</h1>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="nombre" className="text-xs text-neutral-500">Nombre de la meta</label>
@@ -110,7 +174,9 @@ export function CrearMetaPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="imagen" className="text-xs text-neutral-500">Imagen (opcional)</label>
+          <label htmlFor="imagen" className="text-xs text-neutral-500">
+            Imagen {esEdicion ? '(deja vacío para conservar la actual)' : '(opcional)'}
+          </label>
           <input
             id="imagen"
             type="file"
@@ -120,7 +186,7 @@ export function CrearMetaPage() {
               setImagen(file);
               // URL temporal que vive solo en el navegador — no sube
               // nada, solo permite mostrar la imagen antes de guardar.
-              setPreviewUrl(file ? URL.createObjectURL(file) : null);
+              if (file) setPreviewUrl(URL.createObjectURL(file));
             }}
             className="text-xs"
           />
@@ -136,7 +202,9 @@ export function CrearMetaPage() {
           disabled={enviando}
           className="rounded-md bg-neutral-900 py-2.5 text-sm font-medium text-white disabled:opacity-50"
         >
-          {enviando ? 'Creando...' : 'Crear meta'}
+          {enviando
+            ? (esEdicion ? 'Guardando...' : 'Creando...')
+            : (esEdicion ? 'Guardar cambios' : 'Crear meta')}
         </button>
       </form>
     </div>
