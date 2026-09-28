@@ -23,6 +23,7 @@ import { ConciliarPage } from "./features/grupos/ConciliarPage";
 import { MinimetasPage } from "./features/metas/MinimetasPage";
 import { CerrarMetaPage } from "./features/metas/CerrarMetaPage";
 import { ConfiguracionGrupoPage } from "./features/grupos/ConfiguracionGrupoPage";
+import { MiPerfilPage } from "./features/auth/MiPerfilPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -103,13 +104,13 @@ function AppRoutes() {
           }
         />
         <Route
-            path="/meta/:metaId/editar"
-            element={
-              <RequireAuth>
-                <CrearMetaPage />
-              </RequireAuth>
-            }
-          />
+          path="/meta/:metaId/editar"
+          element={
+            <RequireAuth>
+              <CrearMetaPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/meta/:metaId/movimiento/:tipo"
           element={
@@ -147,6 +148,14 @@ function AppRoutes() {
           element={
             <RequireAuth>
               <ConfiguracionGrupoPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/mi-perfil"
+          element={
+            <RequireAuth>
+              <MiPerfilPage />
             </RequireAuth>
           }
         />
@@ -210,6 +219,14 @@ function AppRoutes() {
             element={
               <RequireAuth>
                 <ConfiguracionGrupoPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/mi-perfil"
+            element={
+              <RequireAuth>
+                <MiPerfilPage />
               </RequireAuth>
             }
           />

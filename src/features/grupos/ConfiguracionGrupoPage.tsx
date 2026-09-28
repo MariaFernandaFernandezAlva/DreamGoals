@@ -23,6 +23,8 @@ export function ConfiguracionGrupoPage() {
   const [regenerando, setRegenerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [confirmandoSalidaOEliminacion, setConfirmandoSalidaOEliminacion] = useState(false);
+  const [procesandoSalida, setProcesandoSalida] = useState(false);
 
   const esAdmin = miembros.find((m) => m.usuario_id === user?.id)?.rol === 'admin';
 
@@ -97,6 +99,24 @@ export function ConfiguracionGrupoPage() {
     navigator.clipboard.writeText(`https://dreamgoals.app/unirse/${grupo.invite_code}`);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
+  }
+
+  // Un mismo handler para las dos acciones destructivas — cuál de
+  // las dos se ejecuta depende de si el usuario es admin o no.
+  async function handleConfirmarSalidaOEliminacion() {
+    setErrorMsg('');
+    setProcesandoSalida(true);
+
+    const { error } = esAdmin
+      ? await supabase.from('grupos').delete().eq('id', grupoId!)
+      : await supabase.from('miembros_grupo').delete().eq('grupo_id', grupoId!).eq('usuario_id', user!.id);
+
+    setProcesandoSalida(false);
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+    navigate('/mis-grupos', { replace: true });
   }
 
   async function handleGuardar() {
@@ -252,7 +272,60 @@ export function ConfiguracionGrupoPage() {
             {guardando ? 'Guardando...' : 'Guardar cambios'}
           </button>
         )}
+
+        {/* --- Zona de peligro --- */}
+        <div className="rounded-xl border border-red-200 p-5">
+          <p className="mb-1 text-sm font-semibold text-red-700">Zona de peligro</p>
+          <p className="mb-3 text-xs text-neutral-500">
+            {esAdmin
+              ? 'Como admin, no puedes salir del grupo sin más — la única opción es eliminarlo por completo.'
+              : 'Puedes salir del grupo cuando quieras. Vas a dejar de ver sus metas y movimientos.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setConfirmandoSalidaOEliminacion(true)}
+            className="rounded-md border border-red-300 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            {esAdmin ? '🗑 Eliminar grupo' : '🚪 Salir del grupo'}
+          </button>
+        </div>
       </div>
+
+      {confirmandoSalidaOEliminacion && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setConfirmandoSalidaOEliminacion(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-xl bg-white p-6">
+            <h2 className="text-lg font-bold">
+              {esAdmin ? `¿Eliminar "${grupo.nombre}"?` : `¿Salir de "${grupo.nombre}"?`}
+            </h2>
+            <p className="mt-2 text-sm text-neutral-500">
+              {esAdmin
+                ? 'Se van a borrar todos los miembros, metas, depósitos, minimetas y conciliaciones del grupo. Esta acción no se puede deshacer.'
+                : 'Vas a dejar de ver este grupo y sus metas. Si cambias de opinión, alguien del grupo tendría que volver a invitarte.'}
+            </p>
+            {errorMsg && <p className="mt-2 text-xs text-red-600">{errorMsg}</p>}
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmandoSalidaOEliminacion(false)}
+                className="flex-1 rounded-md border border-neutral-300 py-2 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmarSalidaOEliminacion}
+                disabled={procesandoSalida}
+                className="flex-1 rounded-md bg-red-600 py-2 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {procesandoSalida ? 'Procesando...' : esAdmin ? 'Eliminar grupo' : 'Salir del grupo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

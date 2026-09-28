@@ -4,6 +4,7 @@ import { supabase } from "../../services/supabaseClient";
 import type { Meta, Grupo, Minimeta } from "../../services/entities";
 import { Celebracion } from "../../components/Celebracion";
 import { useCelebrarMinimetas } from "../../hooks/useCelebrarMinimetas";
+import { useAuth } from "../auth/AuthProvider";
 
 interface TransaccionFila {
   id: string;
@@ -20,6 +21,9 @@ interface TransaccionFila {
 export function MetaDashboardPage() {
   const { metaId } = useParams<{ metaId: string }>();
   const location = useLocation();
+  const { user } = useAuth();
+  const [transaccionAEliminar, setTransaccionAEliminar] =
+    useState<TransaccionFila | null>(null);
 
   const [meta, setMeta] = useState<Meta | null>(null);
   const [grupo, setGrupo] = useState<Grupo | null>(null);
@@ -152,8 +156,6 @@ export function MetaDashboardPage() {
       0,
     );
     if (ultimaConciliacion.saldo_declarado !== acumuladoActual) return;
-    // Coincide: se marca como resuelta para que quede fija en verde,
-    // sin importar los depósitos/retiros que vengan después.
     supabase
       .from("conciliaciones")
       .update({ resuelto: true })
@@ -185,12 +187,9 @@ export function MetaDashboardPage() {
   const celebrarMetaCompleta = useCelebrarMinimetas(idsMetaCompletada);
 
   if (!meta || !grupo) {
-    return <div>Cargando...</div>; // o el JSX que ya tengas ahí
+    return <div>Cargando...</div>;
   }
 
-  // Arrancamos con todos los miembros en S/ 0, y encima sumamos lo
-  // que cada uno realmente aportó — así el que aún no deposita nada
-  // igual aparece en la lista, no solo quien ya tiene movimientos.
   const aportesPorUsuario = new Map<
     string,
     { nombre: string; aportado: number }
@@ -207,9 +206,6 @@ export function MetaDashboardPage() {
     aportesPorUsuario.set(t.usuario_id, actual);
   });
 
-  // Próxima fecha límite de conciliación = la última que se hizo
-  // (o la fecha de creación del grupo, si nunca se hizo ninguna)
-  // más la frecuencia que definieron al crear el grupo.
   const fechaBase = ultimaConciliacion?.fecha ?? meta.created_at;
   const proximaFecha = new Date(fechaBase);
   proximaFecha.setDate(
@@ -228,6 +224,20 @@ export function MetaDashboardPage() {
     ultimaConciliacion && !ultimaConciliacion.resuelto
       ? ultimaConciliacion.saldo_declarado - acumulado
       : null;
+
+  async function handleConfirmarEliminarTransaccion() {
+    if (!transaccionAEliminar) return;
+    const { error } = await supabase
+      .from("transacciones")
+      .delete()
+      .eq("id", transaccionAEliminar.id);
+    if (!error) {
+      setTransacciones((prev) =>
+        prev.filter((t) => t.id !== transaccionAEliminar.id),
+      );
+    }
+    setTransaccionAEliminar(null);
+  }
 
   return (
     <div className="mx-auto max-w-4xl p-8">
@@ -436,6 +446,7 @@ export function MetaDashboardPage() {
                   <th>Medio</th>
                   <th>Comentario</th>
                   <th>Foto</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -466,6 +477,19 @@ export function MetaDashboardPage() {
                         "—"
                       )}
                     </td>
+                    <td>
+                      {t.usuario_id === user?.id &&
+                        meta.estado !== "completada" && (
+                          <button
+                            type="button"
+                            onClick={() => setTransaccionAEliminar(t)}
+                            className="text-red-500 hover:underline"
+                            title="Borrar"
+                          >
+                            🗑
+                          </button>
+                        )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -474,6 +498,49 @@ export function MetaDashboardPage() {
               <p className="text-xs text-neutral-400">
                 Aún no hay movimientos.
               </p>
+            )}
+            {transaccionAEliminar && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+                onClick={() => setTransaccionAEliminar(null)}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-sm rounded-xl bg-white p-6"
+                >
+                  <h2 className="text-lg font-bold">
+                    ¿Borrar este{" "}
+                    {transaccionAEliminar.tipo === "deposito"
+                      ? "depósito"
+                      : "retiro"}
+                    ?
+                  </h2>
+                  <p className="mt-2 text-sm text-neutral-500">
+                    Se borrará S/ {transaccionAEliminar.monto.toLocaleString()}{" "}
+                    del{" "}
+                    {new Date(
+                      transaccionAEliminar.created_at,
+                    ).toLocaleDateString()}
+                    . Esta acción no se puede deshacer.
+                  </p>
+                  <div className="mt-5 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setTransaccionAEliminar(null)}
+                      className="flex-1 rounded-md border border-neutral-300 py-2 text-sm"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmarEliminarTransaccion}
+                      className="flex-1 rounded-md bg-red-600 py-2 text-sm font-medium text-white"
+                    >
+                      Borrar
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -495,15 +562,6 @@ export function MetaDashboardPage() {
               </div>
             </div>
           ))}
-
-          {/* El formulario de configuración todavía no está construido
-              — queda pendiente de tu diseño. */}
-          <Link
-            to={`/meta/${meta.id}/minimetas`}
-            state={{ backgroundLocation: location }}
-          >
-            Minimetas
-          </Link>
         </div>
       </div>
     </div>
