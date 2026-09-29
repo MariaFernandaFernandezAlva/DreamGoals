@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../features/auth/AuthProvider';
+import { Bell } from "lucide-react";
 
 interface Notificacion {
   id: string;
@@ -114,7 +115,7 @@ export function NotificacionesBell() {
         className="relative rounded-full p-2 text-gray-600 hover:bg-gray-200/50 transition-colors"
         title="Notificaciones"
       >
-        🔔
+        <Bell className="w-5 h-5"/>
         {notificaciones.length > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {notificaciones.length}

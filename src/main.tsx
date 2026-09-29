@@ -41,17 +41,11 @@ function Home() {
 
 function AppRoutes() {
   const location = useLocation();
-  // Cuando un Link/navigate() incluye state.backgroundLocation, quiere
-  // decir "esto es un modal — sigue mostrando esa otra pantalla detrás".
   const state = location.state as { backgroundLocation?: Location } | null;
   const background = state?.backgroundLocation;
 
   return (
     <>
-      {/* Si hay "fondo" guardado, las rutas normales se resuelven con
-          ESA ubicación, no con la actual — por eso el panel del grupo
-          o el dashboard de la meta se siguen viendo aunque la URL ya
-          diga /nueva-meta, /movimiento o /conciliar. */}
       <Routes location={background ?? location}>
         <Route path="/" element={<Home />} />
         <Route path="/unirse/:codigo" element={<UnirseGrupoPage />} />

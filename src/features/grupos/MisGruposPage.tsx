@@ -43,7 +43,7 @@ export function MisGruposPage() {
   const bgColores = ['bg-[#007A7E]', 'bg-[#FF9E6C]', 'bg-[#2EB872]', 'bg-[#E056fd]'];
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1B1B1B]">
+    <div className="min-h-screen bg-neutral text-[#1B1B1B]">
       
       {/* 1. Header unificado arriba (pasamos un id ficticio o vacío si no estamos dentro de un grupo específico) */}
       <Header grupoIdActual="" />
@@ -121,7 +121,7 @@ export function MisGruposPage() {
 
                       {/* Etiqueta de Activo */}
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F2EF] px-3 py-1 text-xs font-bold text-[#007A7E]">
-                        <span className="h-2 w-2 rounded-full bg-[#2EB872]"></span>
+                        <span className="h-2 w-2 rounded-full bg-verde"></span>
                         Activo
                       </span>
                     </div>
