@@ -99,12 +99,8 @@ export function NotificacionesBell() {
     setNotificaciones(resultado);
   }
 
-  // Se recalcula al montar y cada vez que cambias de página (para
-  // que se actualice sola después de, por ejemplo, resolver una
-  // conciliación o cerrar una meta).
   useEffect(() => {
     cargarNotificaciones();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, location.key]);
 
   return (
@@ -138,7 +134,7 @@ export function NotificacionesBell() {
                     key={n.id}
                     to={`/meta/${n.metaId}`}
                     onClick={() => setAbierto(false)}
-                    className="rounded-lg px-2 py-2 text-sm hover:bg-neutral-50"
+                    className="rounded-lg px-2 py-2 text-sm hover:bg-naranja/10 text-amber-600"
                   >
                     {n.mensaje}
                   </Link>

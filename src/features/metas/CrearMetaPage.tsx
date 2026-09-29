@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { Spinner } from '../../components/Spinner';
+import { Plus, X, SquarePen, CircleCheckBig, Image } from "lucide-react";
 
 export function CrearMetaPage() {
   const { grupoId, metaId } = useParams<{ grupoId?: string; metaId?: string }>();
   const navigate = useNavigate();
   const esEdicion = !!metaId;
-
-  // En edición no sabemos el grupo_id hasta cargar la meta — se
-  // necesita para armar la ruta de la imagen al subir una nueva.
   const [grupoIdReal, setGrupoIdReal] = useState<string | null>(grupoId ?? null);
   const [nombre, setNombre] = useState('');
   const [montoObjetivo, setMontoObjetivo] = useState('');
@@ -86,17 +84,10 @@ export function CrearMetaPage() {
         setErrorMsg(error.message);
         return;
       }
-      // replace: true para que el dashboard de esa meta se refresque
-      // con los datos nuevos (mismo patrón que usamos en todos los
-      // demás modales que guardan cambios).
       navigate(`/meta/${metaId}`, { replace: true });
       return;
     }
 
-    // A diferencia de grupos, aquí SÍ hacemos un insert directo —
-    // la tabla metas ya tiene su propia política de RLS
-    // ("crear metas en mis grupos") que valida que seas miembro
-    // del grupo, así que no hace falta una función intermedia.
     const { data, error } = await supabase
       .from('metas')
       .insert({
@@ -128,77 +119,150 @@ export function CrearMetaPage() {
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="relative flex w-full max-w-sm flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-7"
+        className="relative flex w-full max-w-104 flex-col gap-6 rounded-4xl bg-[#FAFAF7] p-8 shadow-2xl"
       >
+        {/* Botón Cerrar */}
         <button
           type="button"
           onClick={cerrar}
           aria-label="Cerrar"
-          className="absolute right-4 top-4 text-neutral-400"
+          className="absolute right-6 top-6 text-neutral-400 hover:text-neutral-600 transition-colors"
         >
-          ×
+          <X className="h-5 w-5"/>
         </button>
 
-        <h1 className="text-lg font-bold">{esEdicion ? 'Editar meta' : 'Nueva meta'}</h1>
+        {/* Encabezado */}
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-azul/20 text-azul">
+            {esEdicion ? <SquarePen className="w-6 h-6"/> : <Plus className="w-6 h-6"/>}
+          </div>
+          <div>
+            <h1 className="font-fraunces text-2xl font-bold text-neutral-900">
+              {esEdicion ? 'Editar meta' : 'Nueva meta'}
+            </h1>
+            <p className="text-sm text-neutral-500">
+              {esEdicion ? 'Actualiza tu objetivo financiero' : 'Define tu próximo objetivo financiero'}
+            </p>
+          </div>
+        </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="nombre" className="text-xs text-neutral-500">Nombre de la meta</label>
+        {/* Nombre de la Meta */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="nombre" className="text-xs font-bold uppercase tracking-wide text-neutral-700">
+              Nombre de la meta
+            </label>
+            <span className="text-xs text-neutral-400">Obligatorio</span>
+          </div>
           <input
             id="nombre"
             required
             placeholder="Inicial del departamento"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3.5 text-sm text-neutral-800 placeholder-neutral-400 outline-none transition-colors focus:border-azul/50 focus:ring-1 focus:azul/50"
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="monto" className="text-xs text-neutral-500">Monto objetivo (S/)</label>
-          <input
-            id="monto"
-            type="number"
-            min={1}
-            required
-            value={montoObjetivo}
-            onChange={(e) => setMontoObjetivo(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
+        {/* Monto Objetivo */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="monto" className="text-xs font-bold uppercase tracking-wide text-neutral-700">
+              Monto objetivo
+            </label>
+            <span className="rounded-full bg-azul/10 px-2.5 py-1 text-[10px] font-semibold text-azul">
+              Soles (PEN)
+            </span>
+          </div>
+          <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white transition-colors focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+            <div className="flex items-center justify-center bg-azul/10 px-4 text-sm font-bold text-azul">
+              S/
+            </div>
+            <input
+              id="monto"
+              type="number"
+              min={1}
+              step="0.01"
+              required
+              placeholder="0.00"
+              value={montoObjetivo}
+              onChange={(e) => setMontoObjetivo(e.target.value)}
+              className="w-full bg-transparent px-3 py-3.5 text-sm text-neutral-800 placeholder-neutral-300 outline-none"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="imagen" className="text-xs text-neutral-500">
-            Imagen {esEdicion ? '(deja vacío para conservar la actual)' : '(opcional)'}
-          </label>
-          <input
-            id="imagen"
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0] ?? null;
-              setImagen(file);
-              // URL temporal que vive solo en el navegador — no sube
-              // nada, solo permite mostrar la imagen antes de guardar.
-              if (file) setPreviewUrl(URL.createObjectURL(file));
-            }}
-            className="text-xs"
-          />
-          {previewUrl && (
-            <img src={previewUrl} alt="Vista previa" className="mt-2 h-24 w-full rounded-md object-cover" />
-          )}
+        {/* Imagen o Avatar */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold uppercase tracking-wide text-neutral-700">
+              Imagen o avatar
+            </label>
+            <span className="text-xs text-neutral-400">
+              {esEdicion ? 'Opcional (deja vacío)' : 'Opcional'}
+            </span>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-white p-1.5 shadow-sm">
+            <div className="flex items-center justify-between rounded-xl border border-neutral-200/60 bg-[#F9F7F2] px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-neutral-800">
+                <Image className="h-5 w-5 text-teal-700"/>
+                <span className="max-w-[140px] truncate font-medium">
+                  {imagen?.name || (imagenPathActual ? 'Imagen actual' : 'Sin imagen')}
+                </span>
+              </div>
+              <label htmlFor="imagen" className="cursor-pointer text-sm font-semibold text-[#008A8A] hover:text-teal-800">
+                Cambiar
+              </label>
+              <input
+                id="imagen"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setImagen(file);
+                  if (file) setPreviewUrl(URL.createObjectURL(file));
+                }}
+              />
+            </div>
+
+            {previewUrl && (
+              <div className="relative mt-1.5 flex h-40 w-full items-center justify-center overflow-hidden rounded-xl bg-[#EBE7DF]/30 p-2">
+                <img src={previewUrl} alt="Vista previa" className="h-full w-auto max-w-full rounded-lg object-contain shadow-sm" />
+                <span className="absolute bottom-2 right-2 rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-600 shadow-sm backdrop-blur-sm">
+                  Vista previa
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
+        {errorMsg && <p className="text-center text-xs font-medium text-red-600">{errorMsg}</p>}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-md bg-neutral-900 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {enviando
-            ? (esEdicion ? 'Guardando...' : 'Creando...')
-            : (esEdicion ? 'Guardar cambios' : 'Crear meta')}
-        </button>
+        {/* Botones de acción */}
+        <div className="mt-2 flex flex-col gap-4">
+          <button
+            type="submit"
+            disabled={enviando}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#008A8A] py-3.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-teal-700 disabled:opacity-50"
+          >
+            {!enviando && (
+              <CircleCheckBig className="h-4 w-4"/>
+            )}
+            {enviando
+              ? (esEdicion ? 'Guardando...' : 'Creando...')
+              : (esEdicion ? 'Guardar cambios' : 'Crear meta')}
+          </button>
+          
+          <button
+            type="button"
+            onClick={cerrar}
+            className="w-full text-center text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            Cancelar
+          </button>
+        </div>
       </form>
     </div>
   );

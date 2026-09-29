@@ -10,6 +10,8 @@
   --color-verde: #2EB872;
   --color-neutral: #fcfaf1;
   --color-bagde: #fdfefb;
+  --color-njoscuro: #95491f;
+  --color-negro: #1B1B1B;
 
 }
 
@@ -19,6 +21,8 @@
   --verde: #2EB872;
   --neutral: #fcfaf1;
   --bagde: #fdfefb;
+  --njoscuro: #95491f;
+  --negro: #1B1B1B;
 }
 
 body {

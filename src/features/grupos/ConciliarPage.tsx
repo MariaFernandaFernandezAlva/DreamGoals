@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
+import { Image, ShieldCheck, CircleCheckBig, X } from "lucide-react"
 
 export function ConciliarPage() {
   const { metaId } = useParams<{ metaId: string }>();
@@ -59,59 +60,134 @@ export function ConciliarPage() {
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="relative flex w-full max-w-sm flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-7"
+        className="relative flex w-full max-w-104 flex-col gap-5 rounded-4xl bg-[#FAFAF7] p-8 shadow-2xl"
       >
-        <button type="button" onClick={cerrar} aria-label="Cerrar" className="absolute right-4 top-4 text-neutral-400">
-          ×
+        {/* Botón Cerrar */}
+        <button
+          type="button"
+          onClick={cerrar}
+          aria-label="Cerrar"
+          className="absolute right-6 top-6 text-neutral-400 transition-colors hover:text-neutral-600"
+        >
+          <X className="h-5 w-5"/>
         </button>
 
-        <h1 className="text-lg font-bold">Subir conciliación</h1>
-        <p className="text-xs text-neutral-500">
-          Sube el saldo real que muestra la tarjeta y una captura de la app del banco. Subirlo desbloquea la app
+        {/* Encabezado */}
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-njoscuro/20 text-njoscuro">
+            <ShieldCheck className="h-6 w-6"/>
+          </div>
+          <div>
+            <h1 className="font-serif text-2xl font-bold text-neutral-900">
+              Subir conciliación
+            </h1>
+            <p className="mt-0.5 text-xs font-medium text-njoscuro">
+              Verificación de fondos
+            </p>
+          </div>
+        </div>
+        
+        <p className="text-sm leading-relaxed text-neutral-500">
+          Sube el saldo real que muestra la tarjeta y una captura de la app del banco. Subirlo desbloquea la página web
           de inmediato, coincida o no con lo calculado.
         </p>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="saldo" className="text-xs text-neutral-500">Monto real (S/)</label>
-          <input
-            id="saldo"
-            type="number"
-            min={0}
-            required
-            value={saldo}
-            onChange={(e) => setSaldo(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
+        {/* Monto real */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="saldo" className="text-xs font-bold uppercase tracking-wide text-neutral-700">
+              Monto real
+            </label>
+            <span className="rounded-full bg-azul/10 px-2.5 py-1 text-[10px] font-semibold text-azul">
+              Soles (PEN)
+            </span>
+          </div>
+          <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white transition-colors focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+            <div className="flex items-center justify-center bg-azul/10 px-4 text-sm font-bold text-azul">
+              S/
+            </div>
+            <input
+              id="saldo"
+              type="number"
+              min={0}
+              step="0.01"
+              required
+              placeholder="0.00"
+              value={saldo}
+              onChange={(e) => setSaldo(e.target.value)}
+              className="w-full bg-transparent px-3 py-3.5 text-sm text-neutral-800 placeholder-neutral-300 outline-none"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="captura" className="text-xs text-neutral-500">Captura del saldo</label>
-          <input
-            id="captura"
-            type="file"
-            accept="image/*"
-            required
-            onChange={(e) => {
-              const file = e.target.files?.[0] ?? null;
-              setCaptura(file);
-              setPreviewUrl(file ? URL.createObjectURL(file) : null);
-            }}
-            className="text-xs"
-          />
-          {previewUrl && (
-            <img src={previewUrl} alt="Vista previa" className="mt-2 h-24 w-full rounded-md object-cover" />
-          )}
+        {/* Captura del saldo */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold uppercase tracking-wide text-neutral-700">
+              Captura del saldo
+            </label>
+            <span className="text-xs font-medium text-neutral-400">Obligatorio</span>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-100 bg-white p-1.5 shadow-sm">
+            <div className="flex items-center justify-between rounded-xl border border-neutral-200/60 bg-[#F9F7F2] px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-neutral-800">
+                <Image className="h-5 w-5 text-azul"/>
+                <span className="max-w-35 truncate font-medium">
+                  {captura?.name || 'Sin archivo'}
+                </span>
+              </div>
+              <label htmlFor="captura" className="cursor-pointer text-sm font-semibold text-[#008A8A] transition-colors hover:text-teal-800">
+                {captura ? 'Cambiar' : 'Subir foto'}
+              </label>
+              <input
+                id="captura"
+                type="file"
+                accept="image/*"
+                required
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setCaptura(file);
+                  setPreviewUrl(file ? URL.createObjectURL(file) : null);
+                }}
+              />
+            </div>
+
+            {previewUrl && (
+              <div className="relative mt-1.5 flex h-40 w-full items-center justify-center overflow-hidden rounded-xl bg-[#EBE7DF]/30 p-2">
+                <img src={previewUrl} alt="Vista previa" className="h-full w-auto max-w-full rounded-lg object-contain shadow-sm" />
+                <span className="absolute bottom-2 right-2 rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-600 shadow-sm backdrop-blur-sm">
+                  Vista previa
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
+        {errorMsg && <p className="text-center text-xs font-medium text-red-600">{errorMsg}</p>}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-md bg-neutral-900 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {enviando ? 'Guardando...' : 'Guardar conciliación'}
-        </button>
+        {/* Botones de acción */}
+        <div className="mt-2 flex flex-col gap-4">
+          <button
+            type="submit"
+            disabled={enviando}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#008A8A] py-3.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-teal-700 disabled:opacity-50"
+          >
+            {!enviando && (
+              <CircleCheckBig className="h-4 w-4"/>
+            )}
+            {enviando ? 'Guardando...' : 'Guardar conciliación'}
+          </button>
+          
+          <button
+            type="button"
+            onClick={cerrar}
+            className="w-full text-center text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            Cancelar
+          </button>
+        </div>
       </form>
     </div>
   );
