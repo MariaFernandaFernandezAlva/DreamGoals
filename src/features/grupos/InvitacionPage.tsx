@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import type { Grupo } from '../../services/entities';
 import DreamGoals from "../../assets/DreamGoals.jpg";
-import { Sparkles, CircleCheckBig, ArrowLeft } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export function InvitacionPage() {
   // El id del grupo viene en la URL: /invitacion/:grupoId
