@@ -391,7 +391,7 @@ export function MetaDashboardPage() {
 
         {/* Meta cerrada */}
         {meta.estado === "completada" && (
-          <div className="flex flex-row items-center justify-center gap-5 mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+          <div className="flex flex-row items-center justify-start gap-5 mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
             {imagenCierreUrl && (
               <a href={imagenCierreUrl} target="_blank" rel="noreferrer">
                 <img
@@ -401,18 +401,18 @@ export function MetaDashboardPage() {
                 />
               </a>
             )}
-            <div className="flex flex-col gap-2">
-              <p className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+            <div className="flex flex-col gap-1">
+              <p className="flex items-center gap-3 text-sm font-semibold text-emerald-800">
                 <PartyPopper className="w-3 h-3" />
                 Meta completada
               </p>
               {meta.fecha_cierre && (
-                <p className="text-xs text-emerald-600 pl-5">
+                <p className="text-xs text-gray-700">
                   {formatearFecha(meta.fecha_cierre, true)}
                 </p>
               )}
               {meta.comentario_cierre && (
-                <p className="mt-3 text-sm text-emerald-800 border-l-2 pl-3">
+                <p className="mt-2 text-sm text-negro border-l-2 border-azul pl-3">
                   {meta.comentario_cierre}
                 </p>
               )}
@@ -681,7 +681,7 @@ export function MetaDashboardPage() {
             </div>
 
             {/* Plan de minimetas */}
-            {minimetasConEstado.length > 0 && (
+            {minimetasConEstado.length >= 0 && (
               <div className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <p className="flex items-center gap-2 font-fraunces font-bold">
@@ -722,7 +722,11 @@ export function MetaDashboardPage() {
                   <Link
                     to={`/meta/${meta.id}/minimetas`}
                     state={{ backgroundLocation: location }}
-                    className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-medium text-azul hover:bg-emerald-100"
+                    className={`mt-5 flex items-center justify-center gap-2 rounded-xl border border-emerald-200 py-3 text-sm font-medium text-azul transition-colors ${
+                      registroBloqueado
+                        ? "cursor-not-allowed bg-azul/40"
+                        : "bg-emerald-50 hover:bg-emerald-100"
+                    }`}
                   >
                     <Settings className="h-4 w-4" />
                     Configurar minimetas

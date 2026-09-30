@@ -45,12 +45,7 @@ export function GroupSwitcher({ grupoIdActual }: { grupoIdActual: string }) {
   };
 
   // Colores bonitos para los avatares combinados
-  const bgColores = [
-    "bg-[#007A7E]",
-    "bg-[#FF9E6C]",
-    "bg-[#2EB872]",
-    "bg-[#E056fd]",
-  ];
+  const bgColores = ["bg-azul", "bg-naranja", "bg-[#006656]", "bg-njoscuro"];
 
   return (
     <div ref={contenedorRef} className="sm:relative">
@@ -118,7 +113,9 @@ export function GroupSwitcher({ grupoIdActual }: { grupoIdActual: string }) {
                           {in1}
                         </div>
                         {in2 && (
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-naranja text-xs font-bold text-white ring-2 ring-white shadow-sm">
+                          <div
+                            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-white shadow-sm ${bgColores[(index + 1) % bgColores.length]}`}
+                          >
                             {in2}
                           </div>
                         )}
