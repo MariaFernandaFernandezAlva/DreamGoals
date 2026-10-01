@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabaseClient';
+import { supabase } from '../../services/Supabaseclient';
 import type { Grupo } from '../../services/entities';
 import { useAuth } from '../auth/AuthProvider';
 import { Spinner } from '../../components/Spinner';
@@ -98,7 +98,7 @@ export function ConfiguracionGrupoPage() {
 
   function handleCopiarLink() {
     if (!grupo) return;
-    navigator.clipboard.writeText(`https://dreamgoals.app/unirse/${grupo.invite_code}`);
+    navigator.clipboard.writeText(`${window.location.origin}/unirse/${grupo.invite_code}`);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }

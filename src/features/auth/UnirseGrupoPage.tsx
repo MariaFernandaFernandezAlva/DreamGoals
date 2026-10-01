@@ -1,31 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabaseClient';
+import { supabase } from '../../services/Supabaseclient';
 import { useAuth } from './AuthProvider';
 import DreamGoals from "../../assets/DreamGoals.jpg";
-import { Sparkles, CircleCheckBig, ArrowLeft } from "lucide-react";
+import { Sparkles, OctagonAlert } from "lucide-react";
 
 export function UnirseGrupoPage() {
   const { codigo } = useParams<{ codigo: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-
-  // Datos del grupo, para el banner "Te invitaron a..."
   const [nombreGrupo, setNombreGrupo] = useState<string | null>(null);
   const [codigoInvalido, setCodigoInvalido] = useState(false);
-
-  // Estado del formulario de correo (igual que en LoginPage).
   const [email, setEmail] = useState('');
   const [nombre, setNombre] = useState('');
   const [estado, setEstado] = useState<'form' | 'enviando' | 'enviado' | 'error'>('form');
   const [errorMsg, setErrorMsg] = useState('');
-
-  // Evita llamar a unirse_a_grupo más de una vez si el efecto
-  // se vuelve a disparar (por ejemplo, por StrictMode en desarrollo).
   const [uniendose, setUniendose] = useState(false);
 
-  // 1. Apenas carga la página, busca el nombre del grupo para
-  //    mostrarlo en el banner — esto funciona sin estar logueado.
   useEffect(() => {
     supabase
       .rpc('obtener_grupo_por_invite_code', { p_invite_code: codigo! })
@@ -38,9 +29,6 @@ export function UnirseGrupoPage() {
       });
   }, [codigo]);
 
-  // 2. Si en algún momento hay sesión iniciada (ya sea porque
-  //    volviste del link mágico, o porque ya estabas logueado),
-  //    únete al grupo automáticamente y entra al panel.
   useEffect(() => {
     if (authLoading || !user || uniendose) return;
 
@@ -64,7 +52,6 @@ export function UnirseGrupoPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Clave: vuelve a ESTA misma página de invitación, no a "/".
         emailRedirectTo: `${window.location.origin}/unirse/${codigo}`,
         data: nombre ? { nombre } : undefined,
       },
@@ -120,9 +107,7 @@ export function UnirseGrupoPage() {
               // --- ESTADO: CÓDIGO INVÁLIDO ---
               <div className="flex flex-col items-center justify-center gap-6 text-center animate-in fade-in zoom-in duration-300">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50 text-red-600">
-                  <svg fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-10 w-10">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                  <OctagonAlert className="h-10 w-10" />
                 </div>
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-neutral-900">Enlace no válido</h2>
@@ -134,7 +119,7 @@ export function UnirseGrupoPage() {
             ) : uniendose ? (
               // --- ESTADO: UNIÉNDOSE (LOADING) ---
               <div className="flex flex-col items-center justify-center gap-6 text-center animate-in fade-in duration-300">
-                <svg fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-12 w-12 animate-spin text-[#008A8A]">
+                <svg fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-12 w-12 animate-spin text-azul">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
                 <div>

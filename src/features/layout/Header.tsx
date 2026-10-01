@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { supabase } from "../../services/Supabaseclient";
 import { GroupSwitcher } from "../grupos/GroupSwitcher";
 import { useAuth } from "../auth/AuthProvider";
 import { NotificacionesBell } from "../../components/NotificacionesBell";
@@ -11,9 +13,24 @@ interface HeaderProps {
 export function Header({ grupoIdActual }: HeaderProps) {
   const { user } = useAuth();
   const location = useLocation();
+  const [nombre, setNombre] = useState("");
 
-  // Obtener la inicial del usuario para el avatar (ej: "P" de Paolo)
-  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
+  useEffect(() => {
+    if (!user) return;
+
+    supabase
+      .from("perfiles")
+      .select("nombre")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setNombre(data?.nombre ?? "");
+      });
+  }, [user]);
+
+  const userInitial = nombre
+    ? nombre.charAt(0).toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-gray-200/60 bg-bagde backdrop-blur-md">
@@ -45,7 +62,7 @@ export function Header({ grupoIdActual }: HeaderProps) {
           <Link
             to="/mi-perfil"
             state={{ backgroundLocation: location }}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#C8E6DF] text-sm font-bold text-[#006656] shadow-sm hover:opacity-80 sm:h-10 sm:w-10"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-azulclaro text-sm font-bold text-azul shadow-sm hover:opacity-80 sm:h-10 sm:w-10"
           >
             {userInitial}
           </Link>

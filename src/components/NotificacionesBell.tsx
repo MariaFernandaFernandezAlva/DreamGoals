@@ -10,11 +10,6 @@ interface Notificacion {
   mensaje: string;
 }
 
-// Campanita de notificaciones "calculadas": no hay tabla de
-// notificaciones ni nada que guardar — cada vez que se abre, recorre
-// los grupos y metas activas del usuario y arma la lista al vuelo,
-// con las mismas reglas que ya usa el dashboard (conciliación
-// vencida, meta que llegó al monto pero no se cerró).
 export function NotificacionesBell() {
   const { user } = useAuth();
   const location = useLocation();
@@ -68,10 +63,7 @@ export function NotificacionesBell() {
           (t, x) => t + (x.tipo === 'deposito' ? x.monto : -x.monto),
           0,
         );
-
-        // Meta que ya llegó al monto pero sigue sin cerrarse — esto
-        // manda antes que la conciliación (si ya está completa, no
-        // tiene sentido además avisar de conciliación pendiente).
+        
         if (acumulado >= meta.monto_objetivo) {
           resultado.push({
             id: `${meta.id}-completada`,
