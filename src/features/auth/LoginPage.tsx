@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { supabase } from '../../services/supabaseClient';
+import { supabase } from '../../services/Supabaseclient';
 import DreamGoals from "../../assets/DreamGoals.jpg";
-import { Sparkles, CircleCheckBig, ArrowRight } from "lucide-react";
+import { Sparkles, MailCheck, ArrowRight } from "lucide-react";
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [nombre, setNombre] = useState('');
-  // "estado" controla qué le mostramos: el formulario, un mensaje
-  // de éxito, o un error — así no necesitamos tres componentes distintos.
   const [estado, setEstado] = useState<'form' | 'enviando' | 'enviado' | 'error'>('form');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -60,7 +58,7 @@ export function LoginPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
                 Bienvenido de nuevo
               </span>
-              <h2 className="font-serif text-[28px] font-bold leading-tight md:text-3xl lg:text-[34px]">
+              <h2 className="font-serif text-3xl font-bold leading-tight md:text-3xl lg:text-4xl">
                 Tu bitácora de ahorro grupal a un solo paso.
               </h2>
             </div>
@@ -73,14 +71,12 @@ export function LoginPage() {
               // --- ESTADO: MENSAJE ENVIADO ---
               <div className="flex flex-col items-center justify-center gap-6 text-center animate-in fade-in zoom-in duration-300">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-teal-50 text-teal-600">
-                  <svg fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-10 w-10">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
+                  <MailCheck className="h-10 w-10" />
                 </div>
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-neutral-900">Revisa tu correo</h2>
                   <p className="mt-3 text-sm leading-relaxed text-neutral-500">
-                    Te hemos enviado un link de acceso seguro a <strong className="font-semibold text-neutral-800">{email}</strong>.
+                    Te hemos enviado un link de acceso seguro a <strong className="font-semibold text-njoscuro">{email}</strong>.
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-neutral-500">
                     Ábrelo desde este mismo dispositivo para entrar sin necesidad de contraseñas.
@@ -114,7 +110,7 @@ export function LoginPage() {
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
                       placeholder="Ej. Juan Perez"
-                      className="w-full rounded-xl bg-[#F6F5F0] px-4 py-4 text-sm text-neutral-800 outline-none border border-transparent transition-all placeholder:text-neutral-400 focus:border-[#008A8A] focus:bg-white focus:ring-1 focus:ring-[#008A8A]"
+                      className="w-full rounded-xl bg-neutral px-4 py-4 text-sm text-neutral-800 outline-none border border-transparent transition-all placeholder:text-neutral-400 focus:border-azul focus:bg-white focus:ring-1 focus:ring-azul"
                     />
                   </div>
 
@@ -130,7 +126,7 @@ export function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tucorreo@ejemplo.com"
-                      className="w-full rounded-xl bg-[#F6F5F0] px-4 py-4 text-sm text-neutral-800 outline-none border border-transparent transition-all placeholder:text-neutral-400 focus:border-[#008A8A] focus:bg-white focus:ring-1 focus:ring-[#008A8A]"
+                      className="w-full rounded-xl bg-neutral px-4 py-4 text-sm text-neutral-800 outline-none border border-transparent transition-all placeholder:text-neutral-400 focus:border-azul focus:bg-white focus:ring-1 focus:ring-azul"
                     />
                   </div>
                 </div>
@@ -146,7 +142,7 @@ export function LoginPage() {
                   <button
                     type="submit"
                     disabled={estado === 'enviando'}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#008A8A] py-4 text-sm font-semibold text-white shadow-md transition-all hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-azul py-4 text-sm font-semibold text-white shadow-md transition-all hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {estado === 'enviando' ? 'Enviando link seguro...' : 'Enviar link de acceso'}
                     {estado !== 'enviando' && (

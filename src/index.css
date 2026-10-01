@@ -6,6 +6,7 @@
   --font-manrope: "Manrope", sans-serif;
 
   --color-azul: #00989E;
+  --color-azulclaro: #E0F2F1;
   --color-naranja: #FF9E6C;
   --color-verde: #2EB872;
   --color-neutral: #fcfaf1;
@@ -17,6 +18,7 @@
 
 :root {
   --azul: #00989E;
+  --azulclaro: #E0F2F1;
   --naranja: #FF9E6C;
   --verde: #2EB872;
   --neutral: #fcfaf1;

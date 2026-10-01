@@ -1,9 +1,4 @@
-// Círculo de carga reutilizable. Reemplaza a todos los textos sueltos
-// tipo "Cargando..." / "Cargando metas..." por una animación
-// consistente en toda la app.
 interface SpinnerProps {
-  // Si se usa dentro de un modal (que ya tiene su propio fondo/tamaño),
-  // pasa "modal" para que no ocupe toda la pantalla.
   variante?: "pagina" | "modal";
 }
 

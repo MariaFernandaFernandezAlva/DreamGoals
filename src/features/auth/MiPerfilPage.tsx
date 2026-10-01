@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../services/supabaseClient";
+import { supabase } from "../../services/Supabaseclient";
 import { useAuth } from "./AuthProvider";
 import { Spinner } from "../../components/Spinner";
 import { LogOut, X, CalendarDays, UserGroup } from "lucide-react";
@@ -87,7 +87,7 @@ export function MiPerfilPage() {
         </button>
         {/*Encabezado */}
         <div className="flex flex-col items-center gap-1 mt-2">
-          <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-[#E0F2F1] text-3xl font-medium text-[#006656] ring-[6px] ring-[#E0F2F1]/40">
+          <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-azulclaro text-3xl font-medium text-azul ring-[6px] ring-azulclaro/40">
             {nombre
               ? nombre.charAt(0).toUpperCase()
               : user?.email?.charAt(0).toUpperCase()}
